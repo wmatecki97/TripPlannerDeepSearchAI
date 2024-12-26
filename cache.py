@@ -3,13 +3,16 @@ import os
 import urllib.parse
 
 class Cache:
-    def __init__(self, cache_dir="cache"):
+    def __init__(self, cache_dir="cache", tool=None):
         self.cache_dir = cache_dir
+        self.tool = tool
+        if tool:
+            self.cache_dir = os.path.join(self.cache_dir, tool)
         os.makedirs(self.cache_dir, exist_ok=True)
 
     def _get_cache_path(self, key):
-         encoded_key = urllib.parse.quote_plus(key)
-         return os.path.join(self.cache_dir, f"{encoded_key}.json")
+        encoded_key = urllib.parse.quote_plus(key)
+        return os.path.join(self.cache_dir, f"{encoded_key}.json")
 
 
     def get(self, key):

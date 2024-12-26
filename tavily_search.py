@@ -11,7 +11,7 @@ class TavilySearch:
         if not self.api_key:
             raise ValueError("TAVILY_API_KEY not found in environment variables")
         self.client = TavilyClient(api_key=self.api_key)
-        self.cache = Cache()
+        self.cache = Cache(tool="tavily")
 
     def search(self, query, max_results=10):
         cache_key = f"{query}_{max_results}"

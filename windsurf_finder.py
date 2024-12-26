@@ -9,7 +9,7 @@ class WindsurfFinder:
     def __init__(self):
         self.search_tool = TavilySearch()
         self.groq_query = GroqQuery()
-        self.cache = Cache()
+        self.cache = Cache(tool="windsurf_finder")
 
     def find_windsurf_locations(self, area):
         query = f"windsurf schools or shops in {area}"
@@ -19,7 +19,9 @@ class WindsurfFinder:
             print("No results found.")
             return []
         
+        print(f"Found {len(results['results'])} results, analyzing domains...")
         domains = self._analyze_results(results['results'])
+        print(f"Analysis complete, found {len(domains)} domains.")
         return domains
 
     def _analyze_results(self, results):
@@ -64,7 +66,8 @@ class WindsurfFinder:
         
         
         tasks = []
-        for domain, results in domains.items():
+        for i, (domain, results) in enumerate(domains.items()):
+            print(f"Processing domain {i+1}/{len(domains)}: {domain}")
             tasks.append(process_domain(domain, results))
         
         for domain, urls in tasks:
