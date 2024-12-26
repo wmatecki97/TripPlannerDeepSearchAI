@@ -4,6 +4,7 @@ from groq_query import GroqQuery
 from cache import Cache
 from tavily_particular_website_search import TavilyParticularWebsiteSearch
 from tqdm import tqdm
+from windsurf_finder import WindsurfFinder
 
 class WindsurfWebsiteAnalyzer:
     def __init__(self):
@@ -65,11 +66,10 @@ class WindsurfWebsiteAnalyzer:
         return subpage_results
 
 if __name__ == '__main__':
-    # Example usage (replace with actual windsurf_finder results)
-    windsurf_finder_results = {
-        "www.clublasanta.com": ["https://www.clublasanta.com/windsurfing"],
-        "www.lanzarotesurfing.com": ["https://www.lanzarotesurfing.com/windsurf-rental"]
-    }
+    finder = WindsurfFinder()
+    area = "Lanzarote"
+    windsurf_finder_results = finder.find_windsurf_locations(area)
+    
     analyzer = WindsurfWebsiteAnalyzer()
     website_analysis = analyzer.analyze_websites(windsurf_finder_results)
     if website_analysis:
