@@ -13,15 +13,16 @@ class TavilySearch:
         self.client = TavilyClient(api_key=self.api_key)
         self.cache = Cache()
 
-    def search(self, query):
-        cached_result = self.cache.get(query)
+    def search(self, query, max_results=10):
+        cache_key = f"{query}_{max_results}"
+        cached_result = self.cache.get(cache_key)
         if cached_result:
             print("Returning cached result")
             return cached_result
         
         print("Fetching new result")
-        response = self.client.search(query)
-        self.cache.set(query, response)
+        response = self.client.search(query, max_results=max_results)
+        self.cache.set(cache_key, response)
         return response
 
 if __name__ == '__main__':
