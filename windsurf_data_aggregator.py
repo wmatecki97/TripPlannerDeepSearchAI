@@ -2,7 +2,7 @@ import json
 import asyncio
 import aiohttp
 from bs4 import BeautifulSoup
-from groq_query import GroqQuery
+from groq_structured_query import GroqStructuredQuery
 from cache import Cache
 from tqdm import tqdm
 from collections import defaultdict
@@ -10,7 +10,7 @@ from windsurf_website_analyzer import WindsurfWebsiteAnalyzer
 
 class WindsurfDataAggregator:
     def __init__(self):
-        self.groq_query = GroqQuery()
+        self.groq_query = GroqStructuredQuery()
         self.cache = Cache(tool="windsurf_data_aggregator")
         self.structured_output_format = {
             "location_information": {
