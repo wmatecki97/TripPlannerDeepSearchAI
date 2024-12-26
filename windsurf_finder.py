@@ -1,6 +1,8 @@
 import json
 from tavily_search import TavilySearch
 from urllib.parse import urlparse
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from collections import defaultdict
 from groq_query import GroqQuery
 from cache import Cache
@@ -41,8 +43,7 @@ class WindsurfFinder:
                 parsed_url = urlparse(url)
                 domain = parsed_url.netloc
                 domains[domain].append(result)
-        
-        def process_domain(domain, results):
+        def _process_domain(domain, results):
             sorted_results = sorted(results, key=lambda x: len(x.get('url', '')))
             first_result = sorted_results[0]
             title = first_result.get('title', '')
@@ -72,15 +73,17 @@ class WindsurfFinder:
                 print(f"Error processing domain {domain}: {e}")
             return domain, None
         
+        async def process_domains_async(domains):
+            with ThreadPoolExecutor(max_workers=5) as executor:
+                loop = asyncio.get_event_loop()
+                tasks = [loop.run_in_executor(executor, _process_domain, domain, results) for domain, results in domains.items()]
+                
+                for completed_task in tqdm(asyncio.as_completed(tasks), total=len(tasks), desc="Processing domains"):
+                    domain, urls = await completed_task
+                    if urls:
+                        filtered_domains[domain] = urls
         
-        tasks = []
-        for domain, results in tqdm(domains.items(), desc="Processing domains"):
-            tasks.append(process_domain(domain, results))
-        
-        for domain, urls in tasks:
-            if urls:
-                filtered_domains[domain] = urls
-        
+        asyncio.run(process_domains_async(domains))
         return filtered_domains
 
 if __name__ == '__main__':
