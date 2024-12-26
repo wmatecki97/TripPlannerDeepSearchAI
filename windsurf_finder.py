@@ -1,10 +1,12 @@
 from tavily_search import TavilySearch
 from urllib.parse import urlparse
 from collections import defaultdict
+from groq_query import GroqQuery
 
 class WindsurfFinder:
     def __init__(self):
         self.search_tool = TavilySearch()
+        self.groq_query = GroqQuery()
 
     def find_windsurf_locations(self, area):
         query = f"windsurf schools or shops in {area}"
@@ -19,17 +21,34 @@ class WindsurfFinder:
 
     def _analyze_results(self, results):
         domains = defaultdict(list)
+        filtered_domains = {}
         for result in results:
             url = result.get('url')
             if url:
                 parsed_url = urlparse(url)
                 domain = parsed_url.netloc
-                domains[domain].append(url)
+                domains[domain].append(result)
         
-        for domain, urls in domains.items():
-            domains[domain] = sorted(urls, key=len)
+        for domain, results in domains.items():
+            sorted_results = sorted(results, key=lambda x: len(x.get('url', '')))
+            first_result = sorted_results[0]
+            title = first_result.get('title', '')
+            description = first_result.get('description', '')
+            
+            query_text = f"{title} {description}"
+            categories = ["windsurf school"]
+            
+            try:
+                groq_result = self.groq_query.query(query_text, categories)
+                if groq_result:
+                    groq_result_json = json.loads(groq_result)
+                    windsurf_school_probability = groq_result_json.get("windsurf school", 0)
+                    if windsurf_school_probability > 0.5:
+                        filtered_domains[domain] = [res.get('url') for res in sorted_results]
+            except Exception as e:
+                print(f"Error processing domain {domain}: {e}")
         
-        return domains
+        return filtered_domains
 
 if __name__ == '__main__':
     finder = WindsurfFinder()
