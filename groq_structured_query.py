@@ -2,6 +2,7 @@ import os
 from groq import Groq
 from dotenv import load_dotenv
 import json
+from cache import Cache
 
 load_dotenv()
 
@@ -12,8 +13,15 @@ class GroqStructuredQuery:
             raise ValueError("GROQ_API_KEY not found in environment variables")
         self.client = Groq(api_key=self.api_key)
         self.model = "mixtral-8x7b-32768"
+        self.cache = Cache(tool="groq_structured_query")
 
     def query(self, input_text, structured_output_format):
+        cache_key = f"{input_text}_{json.dumps(structured_output_format)}"
+        cached_result = self.cache.get(cache_key)
+        if cached_result:
+            print("  - Returning cached result")
+            return cached_result
+        
         prompt = f"""You are an expert in extracting information from text.
         Given the input text, extract the information and return a JSON object using the following format:
         {json.dumps(structured_output_format)}
@@ -30,7 +38,9 @@ class GroqStructuredQuery:
                 model=self.model,
                 response_format={"type": "json_object"}
             )
-            return json.loads(chat_completion.choices[0].message.content)
+            result = json.loads(chat_completion.choices[0].message.content)
+            self.cache.set(cache_key, result)
+            return result
         except Exception as e:
             print(f"Error during Groq query: {e}")
             return None
@@ -80,5 +90,9 @@ if __name__ == '__main__':
                 }
             }
         }
+    result = groq_query.query(input_text, structured_output_format)
+    print(json.dumps(result, indent=4))
+    
+    # Test cache
     result = groq_query.query(input_text, structured_output_format)
     print(json.dumps(result, indent=4))
