@@ -37,15 +37,17 @@ class WindsurfFinder:
             description = first_result.get('description', '')
             
             query_text = f"{title} {description}"
-            categories = ["windsurf_related_website", "other_website"]
+            categories = ["windsurf_rental_or_school", "windsurfing_magazine", "sport_complex", "holiday_center", "other"]
             
             try:
                 groq_result = self.groq_query.query(query_text, categories)
                 if groq_result:
                     groq_result_json = json.loads(groq_result)
-                    windsurf_related_probability = groq_result_json.get("windsurf_related_website", 0)
-                    other_website_probability = groq_result_json.get("other_website", 0)
-                    if windsurf_related_probability > other_website_probability:
+                    windsurf_rental_or_school_probability = groq_result_json.get("windsurf_rental_or_school", 0)
+                    sport_complex_probability = groq_result_json.get("sport_complex", 0)
+                    holiday_center_probability = groq_result_json.get("holiday_center", 0)
+
+                    if windsurf_rental_or_school_probability > 0.5 or sport_complex_probability > 0.5 or holiday_center_probability > 0.5:
                         filtered_domains[domain] = [res.get('url') for res in sorted_results]
             except Exception as e:
                 print(f"Error processing domain {domain}: {e}")
