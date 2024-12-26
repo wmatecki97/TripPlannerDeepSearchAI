@@ -7,6 +7,7 @@ from tqdm import tqdm
 from collections import defaultdict
 from windsurf_website_analyzer import WindsurfWebsiteAnalyzer
 import asyncio
+import re
 
 class WindsurfDataAggregator:
     def __init__(self):
@@ -81,7 +82,8 @@ class WindsurfDataAggregator:
 
     def _process_subpage(self, url, aggregated_data):
         print(f"  Processing subpage: {url}")
-        cache_key = f"subpage_content_{url}"
+        cache_key_text = ''.join(filter(str.isalnum, url[:50])).lower()
+        cache_key = f"subpage_content_{cache_key_text}"
         cached_result = self.cache.get(cache_key)
         if cached_result:
             print(f"    - Cache hit for {url}")
@@ -91,7 +93,7 @@ class WindsurfDataAggregator:
         text =  asyncio.run(self._fetch_text_from_url(url))
         if text:
             extracted_data = self._extract_data_from_text(text)
-            if extracted_data:
+            if extracted_
                 self.cache.set(cache_key, extracted_data)
                 self._merge_data(aggregated_data, extracted_data)
                 print(f"    - Data extracted and merged from {url}")

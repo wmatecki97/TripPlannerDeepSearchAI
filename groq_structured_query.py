@@ -3,6 +3,7 @@ from groq import Groq
 from dotenv import load_dotenv
 import json
 from cache import Cache
+import re
 
 load_dotenv()
 
@@ -16,7 +17,8 @@ class GroqStructuredQuery:
         self.cache = Cache(tool="groq_structured_query")
 
     def query(self, input_text, structured_output_format):
-        cache_key = f"{input_text}_{json.dumps(structured_output_format)}"
+        cache_key_text = ''.join(filter(str.isalnum, input_text[:50])).lower()
+        cache_key = f"{cache_key_text}_{json.dumps(structured_output_format)}"
         cached_result = self.cache.get(cache_key)
         if cached_result:
             print("  - Returning cached result")

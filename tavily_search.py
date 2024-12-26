@@ -2,6 +2,7 @@ import os
 from tavily import TavilyClient
 from cache import Cache
 from dotenv import load_dotenv
+import re
 
 load_dotenv()
 
@@ -14,7 +15,8 @@ class TavilySearch:
         self.cache = Cache(tool="tavily")
 
     def search(self, query, max_results=10):
-        cache_key = f"{query}_{max_results}"
+        cache_key_text = ''.join(filter(str.isalnum, query[:50])).lower()
+        cache_key = f"{cache_key_text}_{max_results}"
         cached_result = self.cache.get(cache_key)
         if cached_result:
             print("Returning cached result")

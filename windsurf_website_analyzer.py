@@ -7,6 +7,7 @@ from tqdm import tqdm
 from windsurf_finder import WindsurfFinder
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
+import re
 
 class WindsurfWebsiteAnalyzer:
     def __init__(self):
@@ -36,7 +37,8 @@ class WindsurfWebsiteAnalyzer:
 
     def _process_domain(self, domain, urls):
         print(f"Processing domain: {domain}")
-        cache_key = f"website_analysis_{domain}"
+        cache_key_text = ''.join(filter(str.isalnum, domain[:50])).lower()
+        cache_key = f"website_analysis_{cache_key_text}"
         cached_result = self.cache.get(cache_key)
         if cached_result:
             print(f"  - Returning cached analysis for {domain}")
@@ -61,7 +63,8 @@ class WindsurfWebsiteAnalyzer:
             if url:
                 cache_key_title = ''.join(filter(str.isalnum, title[:10])).lower()
                 query_text = f"{title} {description}"
-                cache_key = f"{domain}_{cache_key_title}"
+                cache_key_text = ''.join(filter(str.isalnum, query_text[:50])).lower()
+                cache_key = f"{domain}_{cache_key_text}"
                 cached_groq_result = self.cache.get(cache_key)
                 if cached_groq_result:
                     groq_result_json = cached_groq_result
