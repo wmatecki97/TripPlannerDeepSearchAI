@@ -14,8 +14,7 @@ class GroqQuery:
         self.model = "mixtral-8x7b-32768"
 
     def query(self, input_text, categories):
-        prompt = f"""
-        You are an expert in categorizing text.
+        prompt = f"""You are an expert in categorizing text.
         Given the input text, determine the probability of it belonging to each of the following categories: {categories}.
         Return a JSON object with the category names as keys and the probabilities as values.
         
