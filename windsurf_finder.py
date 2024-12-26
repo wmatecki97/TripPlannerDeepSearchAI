@@ -1,3 +1,4 @@
+import json
 from tavily_search import TavilySearch
 from urllib.parse import urlparse
 from collections import defaultdict
@@ -36,13 +37,13 @@ class WindsurfFinder:
             description = first_result.get('description', '')
             
             query_text = f"{title} {description}"
-            categories = ["windsurf school"]
+            categories = ["windsurf_school"]
             
             try:
                 groq_result = self.groq_query.query(query_text, categories)
                 if groq_result:
                     groq_result_json = json.loads(groq_result)
-                    windsurf_school_probability = groq_result_json.get("windsurf school", 0)
+                    windsurf_school_probability = groq_result_json.get("windsurf_school", 0)
                     if windsurf_school_probability > 0.5:
                         filtered_domains[domain] = [res.get('url') for res in sorted_results]
             except Exception as e:
