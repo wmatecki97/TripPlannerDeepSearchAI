@@ -1,5 +1,4 @@
 import json
-import asyncio
 import aiohttp
 from bs4 import BeautifulSoup
 from groq_structured_query import GroqStructuredQuery
@@ -79,19 +78,19 @@ class WindsurfDataAggregator:
             print(f"Error during Groq query: {e}")
             return None
 
-    async def _process_subpage(self, url):
+    def _process_subpage(self, url, aggregated_data):
         cache_key = f"subpage_content_{url}"
         cached_result = self.cache.get(cache_key)
         if cached_result:
-            return cached_result
+            self._merge_data(aggregated_data, cached_result)
+            return
         
-        text = await self._fetch_text_from_url(url)
+        text =  asyncio.run(self._fetch_text_from_url(url))
         if text:
             extracted_data = self._extract_data_from_text(text)
-            if extracted_data:
+            if extracted_
                 self.cache.set(cache_key, extracted_data)
-                return extracted_data
-        return None
+                self._merge_data(aggregated_data, extracted_data)
 
     def aggregate_data(self, website_analysis):
         aggregated_results = {}
@@ -102,19 +101,30 @@ class WindsurfDataAggregator:
     def _aggregate_domain_data(self, domain, categories):
         aggregated_data = self.structured_output_format.copy()
         
-        async def process_categories_async(categories):
-            tasks = []
-            for category, urls in categories.items():
-                for url in urls:
-                    tasks.append(self._process_subpage(url))
-            
-            subpage_results = await asyncio.gather(*tasks)
-            
-            for result in subpage_results:
-                if result:
-                    self._merge_data(aggregated_data, result)
+        location_complete = False
+        pricing_complete = False
         
-        asyncio.run(process_categories_async(categories))
+        for category, urls in categories.items():
+            for url in urls:
+                if category == "location_information" and not location_complete:
+                    self._process_subpage(url, aggregated_data)
+                    if aggregated_data["location_information"]["name"] and aggregated_data["location_information"]["city"]:
+                        location_complete = True
+                elif category == "pricing" and not pricing_complete:
+                    self._process_subpage(url, aggregated_data)
+                    if (
+                        aggregated_data["pricing"]["windsurfing"]["hourly_rate"] and
+                        aggregated_data["pricing"]["windsurfing"]["daily_rate"] and
+                        aggregated_data["pricing"]["surfing"]["availability"] and
+                        aggregated_data["pricing"]["surfing"]["hourly_rate"] and
+                        aggregated_data["pricing"]["surfing"]["daily_rate"] and
+                        aggregated_data["pricing"]["equipment_rental"]["rental_rate_per_hour"] and
+                        aggregated_data["pricing"]["equipment_rental"]["rental_rate_per_day"]
+                    ):
+                        pricing_complete = True
+                elif category not in ["location_information", "pricing"]:
+                    self._process_subpage(url, aggregated_data)
+        
         return aggregated_data
 
     def _merge_data(self, aggregated_data, new_data):

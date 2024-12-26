@@ -15,8 +15,8 @@ class TavilyParticularWebsiteSearch:
         self.cache = Cache(tool="tavily_particular_website")
 
     def search(self, domain, max_results=10):
-        query = f"windsurfing school rental camp"
-        cache_key = f"{query}_{max_results}"
+        query = f"windsurfing school, rental, camp, pricing, courses, lessons, equipment"
+        cache_key = f"{domain}_{query}_{max_results}"
         cached_result = self.cache.get(cache_key)
         if cached_result:
             print(f"Returning cached result for {domain}")
