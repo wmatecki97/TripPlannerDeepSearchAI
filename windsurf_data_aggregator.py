@@ -127,61 +127,17 @@ class WindsurfDataAggregator:
         return aggregated_data
 
     def _merge_data(self, aggregated_data, new_data):
-        # Merge location information
-        if new_data.get("location_information"):
-            if not aggregated_data["location_information"]["name"]:
-                aggregated_data["location_information"]["name"] = new_data["location_information"].get("name")
-            if not aggregated_data["location_information"]["city"]:
-                aggregated_data["location_information"]["city"] = new_data["location_information"].get("city")
-            if not aggregated_data["location_information"]["contact_details"]["phone"]:
-                aggregated_data["location_information"]["contact_details"]["phone"] = new_data["location_information"]["contact_details"].get("phone")
-            if not aggregated_data["location_information"]["contact_details"]["email"]:
-                aggregated_data["location_information"]["contact_details"]["email"] = new_data["location_information"]["contact_details"].get("email")
-            if not aggregated_data["location_information"]["comments"]:
-                aggregated_data["location_information"]["comments"] = new_data["location_information"].get("comments")
-
-        # Merge pricing information
-        if new_data.get("pricing"):
-            if not aggregated_data["pricing"]["windsurfing"]["hourly_rate"]:
-                aggregated_data["pricing"]["windsurfing"]["hourly_rate"] = new_data["pricing"]["windsurfing"].get("hourly_rate")
-            if not aggregated_data["pricing"]["windsurfing"]["daily_rate"]:
-                aggregated_data["pricing"]["windsurfing"]["daily_rate"] = new_data["pricing"]["windsurfing"].get("daily_rate")
-            if not aggregated_data["pricing"]["windsurfing"]["package_3_to_7_days"]:
-                aggregated_data["pricing"]["windsurfing"]["package_3_to_7_days"] = new_data["pricing"]["windsurfing"].get("package_3_to_7_days")
-            if not aggregated_data["pricing"]["surfing"]["availability"]:
-                aggregated_data["pricing"]["surfing"]["availability"] = new_data["pricing"]["surfing"].get("availability")
-            if not aggregated_data["pricing"]["surfing"]["hourly_rate"]:
-                aggregated_data["pricing"]["surfing"]["hourly_rate"] = new_data["pricing"]["surfing"].get("hourly_rate")
-            if not aggregated_data["pricing"]["surfing"]["daily_rate"]:
-                aggregated_data["pricing"]["surfing"]["daily_rate"] = new_data["pricing"]["surfing"].get("daily_rate")
-            if not aggregated_data["pricing"]["equipment_rental"]["included_in_pricing"]:
-                aggregated_data["pricing"]["equipment_rental"]["included_in_pricing"] = new_data["pricing"]["equipment_rental"].get("included_in_pricing")
-            if not aggregated_data["pricing"]["equipment_rental"]["rental_rate_per_hour"]:
-                aggregated_data["pricing"]["equipment_rental"]["rental_rate_per_hour"] = new_data["pricing"]["equipment_rental"].get("rental_rate_per_hour")
-            if not aggregated_data["pricing"]["equipment_rental"]["rental_rate_per_day"]:
-                aggregated_data["pricing"]["equipment_rental"]["rental_rate_per_day"] = new_data["pricing"]["equipment_rental"].get("rental_rate_per_day")
-            if not aggregated_data["pricing"]["equipment_insurance"]["included"]:
-                aggregated_data["pricing"]["equipment_insurance"]["included"] = new_data["pricing"]["equipment_insurance"].get("included")
-            if not aggregated_data["pricing"]["equipment_insurance"]["cost_per_day"]:
-                aggregated_data["pricing"]["equipment_insurance"]["cost_per_day"] = new_data["pricing"]["equipment_insurance"].get("cost_per_day")
-            if not aggregated_data["pricing"]["comments"]:
-                aggregated_data["pricing"]["comments"] = new_data["pricing"].get("comments")
-
-        # Merge courses information
-        if new_data.get("courses"):
-            for course in new_data["courses"]:
-                aggregated_data["courses"].append(course)
-
-        # Merge transport options
-        if new_data.get("transport_options"):
-            if not aggregated_data["transport_options"]["pickup_service"]["availability"]:
-                aggregated_data["transport_options"]["pickup_service"]["availability"] = new_data["transport_options"]["pickup_service"].get("availability")
-            if not aggregated_data["transport_options"]["pickup_service"]["cost"]:
-                aggregated_data["transport_options"]["pickup_service"]["cost"] = new_data["transport_options"]["pickup_service"].get("cost")
-            if not aggregated_data["transport_options"]["pickup_service"]["from_airport"]:
-                aggregated_data["transport_options"]["pickup_service"]["from_airport"] = new_data["transport_options"]["pickup_service"].get("from_airport")
-            if not aggregated_data["transport_options"]["pickup_service"]["from_city_center"]:
-                aggregated_data["transport_options"]["pickup_service"]["from_city_center"] = new_data["transport_options"]["pickup_service"].get("from_city_center")
+        def _recursive_merge(agg_data, new_data):
+            if isinstance(agg_data, dict) and isinstance(new_data, dict):
+                for key, new_value in new_data.items():
+                    if key not in agg_data or agg_data[key] is None:
+                        agg_data[key] = new_value
+                    else:
+                        _recursive_merge(agg_data[key], new_value)
+            elif isinstance(agg_data, list) and isinstance(new_data, list):
+                 agg_data.extend(new_data)
+            
+        _recursive_merge(aggregated_data, new_data)
 
 if __name__ == '__main__':
     analyzer = WindsurfWebsiteAnalyzer()
