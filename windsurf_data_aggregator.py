@@ -72,18 +72,9 @@ class WindsurfDataAggregator:
             return None
 
     def _extract_data_from_text(self, text):
-        categories = ["location_information", "pricing", "courses", "transport_options"]
-        prompt = f"""
-        Given the following text, extract the information and return a JSON object using the following format:
-        {json.dumps(self.structured_output_format)}
-        Text: {text}
-        """
         try:
-            groq_result = self.groq_query.query(prompt, categories)
-            if groq_result:
-                return json.loads(groq_result)
-            else:
-                return None
+            groq_result = self.groq_query.query(text, self.structured_output_format)
+            return groq_result
         except Exception as e:
             print(f"Error during Groq query: {e}")
             return None
@@ -97,7 +88,7 @@ class WindsurfDataAggregator:
         text = await self._fetch_text_from_url(url)
         if text:
             extracted_data = self._extract_data_from_text(text)
-            if extracted_data:
+            if extracted_
                 self.cache.set(cache_key, extracted_data)
                 return extracted_data
         return None
