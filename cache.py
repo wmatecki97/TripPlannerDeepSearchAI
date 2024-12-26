@@ -1,5 +1,6 @@
 import json
 import os
+import urllib.parse
 
 class Cache:
     def __init__(self, cache_dir="cache"):
@@ -7,7 +8,8 @@ class Cache:
         os.makedirs(self.cache_dir, exist_ok=True)
 
     def _get_cache_path(self, key):
-         return os.path.join(self.cache_dir, f"{key}.json")
+         encoded_key = urllib.parse.quote_plus(key)
+         return os.path.join(self.cache_dir, f"{encoded_key}.json")
 
 
     def get(self, key):
