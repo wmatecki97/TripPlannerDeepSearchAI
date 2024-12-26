@@ -4,6 +4,7 @@ from urllib.parse import urlparse
 from collections import defaultdict
 from groq_query import GroqQuery
 from cache import Cache
+from tqdm import tqdm
 
 class WindsurfFinder:
     def __init__(self):
@@ -66,8 +67,7 @@ class WindsurfFinder:
         
         
         tasks = []
-        for i, (domain, results) in enumerate(domains.items()):
-            print(f"Processing domain {i+1}/{len(domains)}: {domain}")
+        for domain, results in tqdm(domains.items(), desc="Processing domains"):
             tasks.append(process_domain(domain, results))
         
         for domain, urls in tasks:
