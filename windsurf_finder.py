@@ -1,8 +1,5 @@
 import json
-import json
 from tavily_search import TavilySearch
-import asyncio
-import json
 from urllib.parse import urlparse
 from collections import defaultdict
 from groq_query import GroqQuery
@@ -35,8 +32,7 @@ class WindsurfFinder:
                 domain = parsed_url.netloc
                 domains[domain].append(result)
         
-        
-        async def process_domain(domain, results):
+        def process_domain(domain, results):
             sorted_results = sorted(results, key=lambda x: len(x.get('url', '')))
             first_result = sorted_results[0]
             title = first_result.get('title', '')
@@ -51,7 +47,7 @@ class WindsurfFinder:
             categories = ["windsurf_rental_or_school", "windsurfing_magazine", "sport_complex", "holiday_center", "other"]
             
             try:
-                groq_result = await self.groq_query.query(query_text, categories)
+                groq_result = self.groq_query.query(query_text, categories)
                 if groq_result:
                     groq_result_json = json.loads(groq_result)
                     windsurf_rental_or_school_probability = groq_result_json.get("windsurf_rental_or_school", 0)
@@ -66,21 +62,15 @@ class WindsurfFinder:
                 print(f"Error processing domain {domain}: {e}")
             return domain, None
         
-        async def process_domains():
-            tasks = []
-            batch_size = 5
-            domain_items = list(domains.items())
-            for i in range(0, len(domain_items), batch_size):
-                batch = domain_items[i:i + batch_size]
-                for domain, results in batch:
-                    tasks.append(process_domain(domain, results))
-            
-            results = await asyncio.gather(*tasks)
-            for domain, urls in results:
-                if urls:
-                    filtered_domains[domain] = urls
         
-        asyncio.run(process_domains())
+        tasks = []
+        for domain, results in domains.items():
+            tasks.append(process_domain(domain, results))
+        
+        for domain, urls in tasks:
+            if urls:
+                filtered_domains[domain] = urls
+        
         return filtered_domains
 
 if __name__ == '__main__':
