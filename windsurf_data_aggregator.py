@@ -6,6 +6,7 @@ from cache import Cache
 from tqdm import tqdm
 from collections import defaultdict
 from windsurf_website_analyzer import WindsurfWebsiteAnalyzer
+import asyncio
 
 class WindsurfDataAggregator:
     def __init__(self):
@@ -79,22 +80,30 @@ class WindsurfDataAggregator:
             return None
 
     def _process_subpage(self, url, aggregated_data):
+        print(f"  Processing subpage: {url}")
         cache_key = f"subpage_content_{url}"
         cached_result = self.cache.get(cache_key)
         if cached_result:
+            print(f"    - Cache hit for {url}")
             self._merge_data(aggregated_data, cached_result)
             return
         
         text =  asyncio.run(self._fetch_text_from_url(url))
         if text:
             extracted_data = self._extract_data_from_text(text)
-            if extracted_data:
+            if extracted_
                 self.cache.set(cache_key, extracted_data)
                 self._merge_data(aggregated_data, extracted_data)
+                print(f"    - Data extracted and merged from {url}")
+            else:
+                print(f"    - No data extracted from {url}")
+        else:
+            print(f"    - Could not fetch text from {url}")
 
     def aggregate_data(self, website_analysis):
         aggregated_results = {}
         for domain, categories in website_analysis.items():
+            print(f"Aggregating data for domain: {domain}")
             aggregated_results[domain] = self._aggregate_domain_data(domain, categories)
         return aggregated_results
 
@@ -105,11 +114,13 @@ class WindsurfDataAggregator:
         pricing_complete = False
         
         for category, urls in categories.items():
+            print(f" - Processing category: {category}")
             for url in urls:
                 if category == "location_information" and not location_complete:
                     self._process_subpage(url, aggregated_data)
                     if aggregated_data["location_information"]["name"] and aggregated_data["location_information"]["city"]:
                         location_complete = True
+                        print(f"   - Location information complete for {domain}")
                 elif category == "pricing" and not pricing_complete:
                     self._process_subpage(url, aggregated_data)
                     if (
@@ -122,6 +133,7 @@ class WindsurfDataAggregator:
                         aggregated_data["pricing"]["equipment_rental"]["rental_rate_per_day"]
                     ):
                         pricing_complete = True
+                        print(f"   - Pricing information complete for {domain}")
                 elif category not in ["location_information", "pricing"]:
                     self._process_subpage(url, aggregated_data)
         

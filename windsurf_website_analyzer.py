@@ -35,15 +35,16 @@ class WindsurfWebsiteAnalyzer:
 
 
     def _process_domain(self, domain, urls):
+        print(f"Processing domain: {domain}")
         cache_key = f"website_analysis_{domain}"
         cached_result = self.cache.get(cache_key)
         if cached_result:
-            print(f"Returning cached analysis for {domain}")
+            print(f"  - Returning cached analysis for {domain}")
             return domain, cached_result
         
         tavily_results = self.tavily_website_search.search(domain)
         if not tavily_results or not tavily_results.get('results'):
-            print(f"No Tavily results found for domain: {domain}")
+            print(f"  - No Tavily results found for domain: {domain}")
             return domain, {}
         
         subpage_results = self._categorize_subpages(domain, tavily_results['results'])
@@ -53,7 +54,7 @@ class WindsurfWebsiteAnalyzer:
     def _categorize_subpages(self, domain, results):
         categories = ["location_information", "pricing", "camps", "courses", "weather_conditions", "transport_options", "other"]
         subpage_results = defaultdict(list)
-        for result in tqdm(results, desc=f"Categorizing subpages for {domain}"):
+        for result in tqdm(results, desc=f"  - Categorizing subpages for {domain}"):
             url = result.get('url')
             title = result.get('title', '')
             description = result.get('description', '')
