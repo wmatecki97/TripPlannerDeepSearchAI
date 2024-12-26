@@ -91,7 +91,7 @@ class WindsurfDataAggregator:
         text =  asyncio.run(self._fetch_text_from_url(url))
         if text:
             extracted_data = self._extract_data_from_text(text)
-            if extracted_
+            if extracted_data:
                 self.cache.set(cache_key, extracted_data)
                 self._merge_data(aggregated_data, extracted_data)
                 print(f"    - Data extracted and merged from {url}")
