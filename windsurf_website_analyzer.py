@@ -21,7 +21,7 @@ class WindsurfWebsiteAnalyzer:
         all_results = {}
         
         async def process_domains_async(domains):
-            with ThreadPoolExecutor(max_workers=5) as executor:
+            with ThreadPoolExecutor(max_workers=1) as executor:
                 loop = asyncio.get_event_loop()
                 tasks = [loop.run_in_executor(executor, self._process_domain, domain, urls) for domain, urls in domains.items()]
                 
@@ -33,19 +33,7 @@ class WindsurfWebsiteAnalyzer:
         asyncio.run(process_domains_async(windsurf_finder_results))
         return all_results
 
-    def _analyze_domain(self, domain, urls):
-        cache_key = f"website_analysis_{domain}"
-        cached_result = self.cache.get(cache_key)
-        if cached_result:
-            print(f"Returning cached analysis for {domain}")
-            return cached_result
-        
-        tavily_results = self.tavily_website_search.search(domain)
-        if not tavily_results or not tavily_results.get('results'):
-            print(f"No Tavily results found for domain: {domain}")
-            return {}
-        
-        subpage_results = self._categorize_subpages(domain, tavily_results['results'])
+
     def _process_domain(self, domain, urls):
         cache_key = f"website_analysis_{domain}"
         cached_result = self.cache.get(cache_key)
