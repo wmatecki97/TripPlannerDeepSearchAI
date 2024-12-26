@@ -77,12 +77,14 @@ class WindsurfWebsiteAnalyzer:
                         subpage_results[category].append(url)
         return subpage_results
 
+    def _get_windsurf_finder_results(self, area):
+        finder = WindsurfFinder()
+        return finder.find_windsurf_locations(area)
+
 if __name__ == '__main__':
-    finder = WindsurfFinder()
-    area = "Lanzarote"
-    windsurf_finder_results = finder.find_windsurf_locations(area)
-    
     analyzer = WindsurfWebsiteAnalyzer()
+    area = "Lanzarote"
+    windsurf_finder_results = analyzer._get_windsurf_finder_results(area)
     website_analysis = analyzer.analyze_websites(windsurf_finder_results)
     if website_analysis:
         for domain, subpages in website_analysis.items():

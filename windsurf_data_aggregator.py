@@ -142,7 +142,8 @@ class WindsurfDataAggregator:
 if __name__ == '__main__':
     analyzer = WindsurfWebsiteAnalyzer()
     area = "Lanzarote"
-    website_analysis = analyzer.analyze_websites(area)
+    windsurf_finder_results = analyzer._get_windsurf_finder_results(area)
+    website_analysis = analyzer.analyze_websites(windsurf_finder_results)
     
     aggregator = WindsurfDataAggregator()
     aggregated_data = aggregator.aggregate_data(website_analysis)
