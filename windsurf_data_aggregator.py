@@ -6,6 +6,7 @@ from groq_query import GroqQuery
 from cache import Cache
 from tqdm import tqdm
 from collections import defaultdict
+from windsurf_website_analyzer import WindsurfWebsiteAnalyzer
 
 class WindsurfDataAggregator:
     def __init__(self):
@@ -183,21 +184,10 @@ class WindsurfDataAggregator:
                 aggregated_data["transport_options"]["pickup_service"]["from_city_center"] = new_data["transport_options"]["pickup_service"].get("from_city_center")
 
 if __name__ == '__main__':
-    # Example usage (replace with actual data)
-    example_website_analysis = {
-        "www.example1.com": {
-            "location_information": ["https://www.example1.com/location"],
-            "pricing": ["https://www.example1.com/pricing"],
-            "courses": ["https://www.example1.com/courses"],
-            "transport_options": ["https://www.example1.com/transport"]
-        },
-        "www.example2.com": {
-            "location_information": ["https://www.example2.com/location"],
-            "pricing": ["https://www.example2.com/pricing"],
-            "courses": ["https://www.example2.com/courses"],
-            "transport_options": ["https://www.example2.com/transport"]
-        }
-    }
+    analyzer = WindsurfWebsiteAnalyzer()
+    area = "Lanzarote"
+    website_analysis = analyzer.analyze_websites(area)
+    
     aggregator = WindsurfDataAggregator()
-    aggregated_data = aggregator.aggregate_data(example_website_analysis)
+    aggregated_data = aggregator.aggregate_data(website_analysis)
     print(json.dumps(aggregated_data, indent=4))
