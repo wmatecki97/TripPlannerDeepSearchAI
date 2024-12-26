@@ -14,8 +14,8 @@ class TavilyParticularWebsiteSearch:
         self.client = TavilyClient(api_key=self.api_key)
         self.cache = Cache(tool="tavily_particular_website")
 
-    def search(self, domain, max_results=20):
-        query = f"site:{domain} windsurfing"
+    def search(self, domain, max_results=10):
+        query = f"windsurfing school rental camp"
         cache_key = f"{query}_{max_results}"
         cached_result = self.cache.get(cache_key)
         if cached_result:
@@ -23,7 +23,7 @@ class TavilyParticularWebsiteSearch:
             return cached_result
         
         print(f"Fetching new result for {domain}")
-        response = self.client.search(query, max_results=max_results)
+        response = self.client.search(query, max_results=max_results, include_domains=[domain])
         self.cache.set(cache_key, response)
         return response
 
