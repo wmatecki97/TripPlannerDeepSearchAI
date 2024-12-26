@@ -14,6 +14,12 @@ class WindsurfFinder:
 
     def find_windsurf_locations(self, area):
         query = f"windsurf schools or shops in {area}"
+        cache_key = f"all_results_{area}"
+        cached_result = self.cache.get(cache_key)
+        if cached_result:
+            print("Returning cached windsurf locations")
+            return cached_result
+        
         results = self.search_tool.search(query, max_results=200)
         
         if not results or not results.get('results'):
@@ -23,6 +29,7 @@ class WindsurfFinder:
         print(f"Found {len(results['results'])} results, analyzing domains...")
         domains = self._analyze_results(results['results'])
         print(f"Analysis complete, found {len(domains)} domains.")
+        self.cache.set(cache_key, domains)
         return domains
 
     def _analyze_results(self, results):
