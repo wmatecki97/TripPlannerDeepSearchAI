@@ -39,8 +39,11 @@ class WindsurfFinder:
             title = first_result.get('title', '')
             description = first_result.get('description', '')
             
+            
+            
+            cache_key_title = ''.join(filter(str.isalnum, title[:10])).lower()
             query_text = f"{title} {description}"
-            cache_key = f"{domain}_{query_text}"
+            cache_key = f"{domain}_{cache_key_title}"
             cached_result = self.cache.get(cache_key)
             if cached_result:
                 filtered_domains[domain] = cached_result
