@@ -1,6 +1,8 @@
 import json
 import json
 from tavily_search import TavilySearch
+import asyncio
+import json
 from urllib.parse import urlparse
 from collections import defaultdict
 from groq_query import GroqQuery
@@ -33,25 +35,23 @@ class WindsurfFinder:
                 domain = parsed_url.netloc
                 domains[domain].append(result)
         
-        for domain, results in domains.items():
+        
+        async def process_domain(domain, results):
             sorted_results = sorted(results, key=lambda x: len(x.get('url', '')))
             first_result = sorted_results[0]
             title = first_result.get('title', '')
             description = first_result.get('description', '')
-            
-            
             
             cache_key_title = ''.join(filter(str.isalnum, title[:10])).lower()
             query_text = f"{title} {description}"
             cache_key = f"{domain}_{cache_key_title}"
             cached_result = self.cache.get(cache_key)
             if cached_result:
-                filtered_domains[domain] = cached_result
-                continue
+                return domain, cached_result
             categories = ["windsurf_rental_or_school", "windsurfing_magazine", "sport_complex", "holiday_center", "other"]
             
             try:
-                groq_result = self.groq_query.query(query_text, categories)
+                groq_result = await self.groq_query.query(query_text, categories)
                 if groq_result:
                     groq_result_json = json.loads(groq_result)
                     windsurf_rental_or_school_probability = groq_result_json.get("windsurf_rental_or_school", 0)
@@ -59,11 +59,28 @@ class WindsurfFinder:
                     holiday_center_probability = groq_result_json.get("holiday_center", 0)
 
                     if windsurf_rental_or_school_probability > 0.5 or sport_complex_probability > 0.5 or holiday_center_probability > 0.5:
-                        filtered_domains[domain] = [res.get('url') for res in sorted_results]
-                        self.cache.set(cache_key, [res.get('url') for res in sorted_results])
+                        urls = [res.get('url') for res in sorted_results]
+                        self.cache.set(cache_key, urls)
+                        return domain, urls
             except Exception as e:
                 print(f"Error processing domain {domain}: {e}")
+            return domain, None
         
+        async def process_domains():
+            tasks = []
+            batch_size = 5
+            domain_items = list(domains.items())
+            for i in range(0, len(domain_items), batch_size):
+                batch = domain_items[i:i + batch_size]
+                for domain, results in batch:
+                    tasks.append(process_domain(domain, results))
+            
+            results = await asyncio.gather(*tasks)
+            for domain, urls in results:
+                if urls:
+                    filtered_domains[domain] = urls
+        
+        asyncio.run(process_domains())
         return filtered_domains
 
 if __name__ == '__main__':

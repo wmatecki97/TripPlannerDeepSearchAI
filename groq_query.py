@@ -13,7 +13,7 @@ class GroqQuery:
         self.client = Groq(api_key=self.api_key)
         self.model = "mixtral-8x7b-32768"
 
-    def query(self, input_text, categories):
+    async def query(self, input_text, categories):
         prompt = f"""You are an expert in categorizing text.
         Given the input text, determine the probability of it belonging to each of the following categories: {categories}.
         Return a JSON object with the category names as keys and the probabilities as values.
@@ -21,7 +21,7 @@ class GroqQuery:
         Input text: {input_text}
         """
         try:
-            chat_completion = self.client.chat.completions.create(
+            chat_completion = await self.client.chat.completions.create(
                 messages=[
                     {
                         "role": "user",
