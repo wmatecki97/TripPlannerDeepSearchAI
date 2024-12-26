@@ -5,6 +5,8 @@ from cache import Cache
 from tavily_particular_website_search import TavilyParticularWebsiteSearch
 from tqdm import tqdm
 from windsurf_finder import WindsurfFinder
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 
 class WindsurfWebsiteAnalyzer:
     def __init__(self):
@@ -16,10 +18,19 @@ class WindsurfWebsiteAnalyzer:
         if not windsurf_finder_results:
             print("No windsurf finder results provided.")
             return {}
-        
         all_results = {}
-        for domain, urls in tqdm(windsurf_finder_results.items(), desc="Analyzing websites"):
-            all_results[domain] = self._analyze_domain(domain, urls)
+        
+        async def process_domains_async(domains):
+            with ThreadPoolExecutor(max_workers=5) as executor:
+                loop = asyncio.get_event_loop()
+                tasks = [loop.run_in_executor(executor, self._process_domain, domain, urls) for domain, urls in domains.items()]
+                
+                for completed_task in tqdm(asyncio.as_completed(tasks), total=len(tasks), desc="Analyzing websites"):
+                    domain, subpage_results = await completed_task
+                    if subpage_results:
+                        all_results[domain] = subpage_results
+        
+        asyncio.run(process_domains_async(windsurf_finder_results))
         return all_results
 
     def _analyze_domain(self, domain, urls):
@@ -35,8 +46,21 @@ class WindsurfWebsiteAnalyzer:
             return {}
         
         subpage_results = self._categorize_subpages(domain, tavily_results['results'])
+    def _process_domain(self, domain, urls):
+        cache_key = f"website_analysis_{domain}"
+        cached_result = self.cache.get(cache_key)
+        if cached_result:
+            print(f"Returning cached analysis for {domain}")
+            return domain, cached_result
+        
+        tavily_results = self.tavily_website_search.search(domain)
+        if not tavily_results or not tavily_results.get('results'):
+            print(f"No Tavily results found for domain: {domain}")
+            return domain, {}
+        
+        subpage_results = self._categorize_subpages(domain, tavily_results['results'])
         self.cache.set(cache_key, subpage_results)
-        return subpage_results
+        return domain, subpage_results
 
     def _categorize_subpages(self, domain, results):
         categories = ["location_information", "pricing", "camps", "courses", "weather_conditions", "transport_options", "other"]
