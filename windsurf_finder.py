@@ -1,13 +1,16 @@
 import json
+import json
 from tavily_search import TavilySearch
 from urllib.parse import urlparse
 from collections import defaultdict
 from groq_query import GroqQuery
+from cache import Cache
 
 class WindsurfFinder:
     def __init__(self):
         self.search_tool = TavilySearch()
         self.groq_query = GroqQuery()
+        self.cache = Cache()
 
     def find_windsurf_locations(self, area):
         query = f"windsurf schools or shops in {area}"
@@ -37,6 +40,11 @@ class WindsurfFinder:
             description = first_result.get('description', '')
             
             query_text = f"{title} {description}"
+            cache_key = f"{domain}_{query_text}"
+            cached_result = self.cache.get(cache_key)
+            if cached_result:
+                filtered_domains[domain] = cached_result
+                continue
             categories = ["windsurf_rental_or_school", "windsurfing_magazine", "sport_complex", "holiday_center", "other"]
             
             try:
@@ -49,6 +57,7 @@ class WindsurfFinder:
 
                     if windsurf_rental_or_school_probability > 0.5 or sport_complex_probability > 0.5 or holiday_center_probability > 0.5:
                         filtered_domains[domain] = [res.get('url') for res in sorted_results]
+                        self.cache.set(cache_key, [res.get('url') for res in sorted_results])
             except Exception as e:
                 print(f"Error processing domain {domain}: {e}")
         
